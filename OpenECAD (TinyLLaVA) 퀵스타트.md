@@ -208,3 +208,24 @@ outputs = tokenizer.batch_decode(output_ids, skip_special_tokens=True)  # 출력
 print(outputs[0])  # 터미널에 출력
 print(outputs[0], file=open('output_example.md', 'w'))  # `output_example.md`라는 마크다운 파일에 출력
 ```
+
+Python 코드 실행 & PythonOCC로 확인하기
+
+> :bulb: 생성된 코드를 PythonOCC 호환되는 shape으로 만드는 코드는 Dropbox ([원본](https://www.dropbox.com/scl/fi/dkz6thkfkqce446sjxz0c/pythonocc_operator.zip?rlkey=sv9b5eyumxw01ofnzt7a0u53v&dl=0), [민섭수정본](https://www.dropbox.com/scl/fi/gvpo1h8qv1clw3hbyyo5r/pythonocc_operator.zip?rlkey=b5oh43sunxungni3w848acbty&dl=0))에서 확인하세요(Multimodal_CAD 폴더). 
+
+```python
+from pythonocc_operator.py2step import show
+
+# python code로 저장
+py_path = 'output_example.py'
+file = open(py_path, 'w')
+for s in outputs[0].split('\n')[2:-1]:
+    file.write(s+'\n')
+file.close()
+
+# OCC GUI로 출력 (window pop-up)
+show(py_path)
+```
+
+다음과 같은 window에 모델이 표시되면 됩니다(id=00000131).
+<img src='assets/output_example_snapshot.jpg'/>
