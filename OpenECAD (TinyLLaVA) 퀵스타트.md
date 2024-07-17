@@ -91,7 +91,7 @@ pip install -U numpy==1.23.5
 ---
 
 ### 0-3 (추가). Gemma 인증받기
-Gemma는 HuggingFace(https://huggingface.co/google/gemma-2b-it)에서 무료로 사용할 수 있지만, 라이센스 인증 절차를 밟아야 합니다.
+Gemma는 (HuggingFace)[https://huggingface.co/google/gemma-2b-it]에서 무료로 사용할 수 있지만, 라이센스 인증 절차를 밟아야 합니다.
 
 다음 링크에 접속해 HuggingFace에 로그인(혹은 가입)한 뒤 Model card에 대한 Access를 얻습니다.
 
