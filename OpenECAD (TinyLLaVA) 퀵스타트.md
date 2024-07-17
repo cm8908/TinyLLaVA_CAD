@@ -40,7 +40,7 @@ pip install -e .
 ```bash
 pip install flash-attn --no-build-isolation
 ```
----
+
 ### 0-2. HuggingFace를 이용해 사전학습된 모델 불러오기 & Visual Question-Answering 추론 수행
 참조: https://github.com/TinyLLaVA/TinyLLaVA_Factory?tab=readme-ov-file#launch-demo-locally
 
@@ -88,13 +88,14 @@ pip list | grep numpy
 # numpy 버전 1.23.5로 다운그레이드
 pip install -U numpy==1.23.5
 ```
----
+
 
 ### 0-3 (추가). Gemma 인증받기
 Gemma는 (HuggingFace)[https://huggingface.co/google/gemma-2b-it]에서 무료로 사용할 수 있지만, 라이센스 인증 절차를 밟아야 합니다.
 
 다음 링크에 접속해 HuggingFace에 로그인(혹은 가입)한 뒤 Model card에 대한 Access를 얻습니다.
 
+---
 
 ## 1. 사전학습된 OpenECAD 모델 불러오기 & 추론 수행
 
@@ -139,7 +140,6 @@ dataset/text_files$ huggingface-cli download --repo-type dataset --local-dir . Y
 >
 > 새로운 데이터셋 업데이트가 있으면, 위의 `$huggingface-cli download` 명령어를 활용해 다운로드받아 줍니다.
 
----
 
 ### 1-2. 사전학습된 OpenECAD 모델 & 전처리기 불러오기
 > [GitHub](https://github.com/cm8908/TinyLLaVA_CAD)에 올려둔 `test-openecad-2.4b.ipynb` 파일을 참고하세요.
