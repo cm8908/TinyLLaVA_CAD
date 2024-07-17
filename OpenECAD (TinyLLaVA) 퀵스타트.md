@@ -135,7 +135,7 @@ dataset/openecad$ 7za x images_3d.7z  # 압축 해제 (참고: 오래걸림)
 ```bash
 dataset/text_files$ huggingface-cli download --repo-type dataset --local-dir . Yuki-Kokomi/OpenECAD-Dataset data_2d_1.json data_2d_2.json data_3d.json data_3d_extend.json data_3d_lite.json
 ```
-> :bulb: 저자가 계속해서 데이터를 업데이트하고 있는 것으로 보입니다. (저자 프로필)[https://huggingface.co/Yuki-Kokomi]을 종종 확인해 새로운 업데이트가 있는지 확인해줍시다.
+> :bulb: 저자가 계속해서 데이터를 업데이트하고 있는 것으로 보입니다. [저자 프로필](https://huggingface.co/Yuki-Kokomi)을 종종 확인해 새로운 업데이트가 있는지 확인해줍시다.
 >
 > 새로운 데이터셋 업데이트가 있으면, 위의 `$huggingface-cli download` 명령어를 활용해 다운로드받아 줍니다.
 
