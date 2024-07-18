@@ -42,6 +42,8 @@ def load_pretrained_model(model_name_or_path, load_type='hf', load_8bit=False, l
             model = TinyLlavaForConditionalGeneration(model_config)
             language_model_ckp_path = os.path.join(model_name_or_path, 'language_model/pytorch_model.bin')
             language_model_ckp = load_base_ckp_for_lora(language_model_ckp_path)
+            if 'lm_head.weight' not in language_model_ckp and hasattr(model.language_model, 'lm_head'):
+                language_model_ckp['lm_head.weight'] = language_model_ckp['model.embed_tokens.weight']
             model.language_model.load_state_dict(language_model_ckp)
             vision_tower_ckp_path = os.path.join(model_name_or_path, 'vision_tower/pytorch_model.bin')
             vision_tower_ckp = load_base_ckp_for_lora(vision_tower_ckp_path)
