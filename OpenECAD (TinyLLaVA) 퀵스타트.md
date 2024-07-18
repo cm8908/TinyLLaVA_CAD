@@ -12,6 +12,11 @@
     1-1. [OpenECAD 데이터셋 다운로드 (HuggingFace)](#1-1-openecad-데이터셋-다운로드-huggingface)
 
     1-2. [사전학습된 OpenECAD 모델 & 전처리기 불러오기](#1-2-사전학습된-openecad-모델--전처리기-불러오기)
+2. [사전학습된 TinyLLaVA 모델을 OpenECAD 데이터셋에 파인튜닝하기](#2-사전학습된-tinyllava-모델을-openecad-데이터셋에-파인튜닝하기)
+   
+   2-1. [Fine-tuning 스크립트 실행](#2-1-fine-tuning-스크립트-실행)
+   
+   2-2. [Fine-tuned 모델 불러와서 추론 수행](#2-2-fine-tuned-모델-불러와서-추론-수행)
 ---
 
 ## 0. TinyLLaVA 환경 구축 & Quick Inference
@@ -142,7 +147,7 @@ dataset/text_files$ huggingface-cli download --repo-type dataset --local-dir . Y
 
 
 ### 1-2. 사전학습된 OpenECAD 모델 & 전처리기 불러오기
-> [GitHub](https://github.com/cm8908/TinyLLaVA_CAD)에 올려둔 `test-openecad-2.4b.ipynb` 파일을 참고하세요.
+> :bulb: [GitHub](https://github.com/cm8908/TinyLLaVA_CAD)에 올려둔 `test-openecad-2.4b.ipynb` 파일을 참고하세요.
 
 모델, 전처리 모듈 불러오기
 ```python
@@ -229,3 +234,93 @@ show(py_path)
 
 다음과 같은 window에 모델이 표시되면 됩니다(id=00000131).
 <img src='assets/output_example_snapshot.jpg'/>
+
+---
+
+## 2. 사전학습된 TinyLLaVA 모델을 OpenECAD 데이터셋에 파인튜닝하기
+이번 섹션에서는...
+- [1번](#1-1-openecad-데이터셋-다운로드-huggingface)에서의 OpenECAD 데이터셋이 모두 설치된 상태를 가정하고 진행합니다.
+- 사전학습된 모델은 `tinyllava/TinyLLaVA-Gemma-SigLIP-2.4B`를 사용하고, LoRA를 사용한 파인튜닝을 수행하겠습니다.
+ 
+### 2-1. Fine-tuning 스크립트 실행
+사전학습된 TinyLLaVA 모델을 커스텀 데이터셋에 파인튜닝하기 위해서는 단순히 [GitHub](https://github.com/TinyLLaVA/TinyLLaVA_Factory/blob/main/scripts/train/custom_finetune.sh)에 미리 준비되어 있는 스크립트(`custom_finetune.sh`)를 수정 후 실행시켜주기만 하면 됩니다.
+
+참조: https://github.com/TinyLLaVA/TinyLLaVA_Factory/blob/main/CUSTOM_FINETUNE.md
+
+아래와 같이 자신이 설치한 데이터 경로에 맞게 스크립트 내용을 수정해줍니다. 아래 경로는 예시이므로, 자신이 설치한 경로에 맞게 지정해줍시다. [GitHub](https://github.com/cm8908/TinyLLaVA_CAD/blob/main/scripts/train/finetune_openecad.sh)에도 OpenECAD에 맞는 수정된 스크립트 파일을 올려두었습니다.
+```sh
+DATA_PATH="/home/my-path/TinyLLaVA_Factory/dataset/text_files/data_3d_lite.json"  # json 파일(텍스트 데이터) 경로
+IMAGE_PATH="/home/my-path/TinyLLaVA_Factory/dataset/openecad/images_3d/cad_image/"  # 이미지 파일들이 저장된 디렉토리 경로
+MODEL_MAX_LENGTH=2048  # 2048 for Gemma -> 다른 LM backbone 사용 시 변경 필요
+OUTPUT_DIR="/home/my-path/TinyLLaVA_Factory/outputs/OpenECAD-Gemma-SigLip-2.4B-lora"  # 파인튜닝 결과가 저장될 위치; 원하는 위치로 지정
+
+deepspeed --include localhost:0,1 --master_port 29501 tinyllava/train/custom_finetune.py \  # localhost: 뒤에 숫자들이  gpu id임
+...
+    --conv_version gemma \  # 모델에 따라 변경
+...
+    --pretrained_model_path "tinyllava/TinyLLaVA-Gemma-SigLIP-2.4B" \  # 원하는 backbone으로 변경
+...
+    --run_name OpenECAD-Gemma-SigLip-2.4B-lora  # 저장될 디렉토리 이름. 원하는 이름으로 변경
+...
+```
+
+아래 명령어로 스크립트를 실행합니다.
+```bash
+bash scripts/train/custom_finetune.sh
+```
+
+### 2-2. Fine-tuned 모델 불러와서 추론 수행
+> :bulb: [GitHub](https://github.com/cm8908/TinyLLaVA_CAD/blob/main/test-openecad-2.4b-custom-finetuned.ipynb)에 올려둔 `test-openecad-2.4b-custom-finetuned.ipynb`를 참고하세요. 모델을 불러오는 부분 말고는 [1-2](#1-2-사전학습된-openecad-모델--전처리기-불러오기)와 동일합니다.
+
+다음과 같은 코드로 모델과 전처리기 등을 불러옵니다. 이후 과정은 [1-2](#1-2-사전학습된-openecad-모델--전처리기-불러오기)와 같습니다.
+```python
+# import 생략
+
+# 내가 지정한 저장 위치
+model_path = '/home/jung/TinyLLaVA_Factory/outputs/OpenECAD-Gemma-SigLip-2.4B-lora'
+# 모델, 토크나이저, 이미지처리, context length 불러오기
+model, tokenizer, image_processor, context_len = load_pretrained_model(model_path)
+model.cuda()
+
+# 텍스트, 이미지 전처리기 초기화
+text_processor = TextPreprocess(tokenizer, 'gemma')
+image_processor = ImagePreprocess(image_processor, model.config)
+```
+
+만약 위와 같은 코드로 모델을 불러오는데 다음과 같은 에러가 발생한다면,
+>RuntimeError: Error(s) in loading state_dict for GemmaForCausalLM:
+>
+>Missing key(s) in state_dict: "lm_head.weight".
+
+`tinyllava/model/load_model.py`에 들어가 `load_pretrained_model()` 함수를 다음과 같은 코드를 추가하세요 (Line 44-45).
+
+참조: https://github.com/TinyLLaVA/TinyLLaVA_Factory/issues/88
+```python
+if 'lm_head.weight' not in language_model_ckp and hasattr(model.language_model, 'lm_head'):
+    language_model_ckp['lm_head.weight'] = language_model_ckp['model.embed_tokens.weight']
+```
+
+이후 동일한 과정을 수행하여 결과가 잘 출력 된다면 성공입니다.
+
+출력 예시:
+```python
+SketchPlane0 = add_sketchplane(
+	origin= [0., 0., 0.], normal= [1., 0., 0.], x_axis= [ 0.,  1., -0.], y_axis= [0., 0., 1.])
+Loops0 = []
+Curves0_0 = []
+Circle0_0_0 = add_circle(center= [175.5, 128. ], radius= 47.5)
+Curves0_0.append(Circle0_0_0)
+Loop0_0 = add_loop(Curves0_0)
+Loops0.append(Loop0_0)
+Curves0_1 = []
+Circle0_1_0 = add_circle(center= [175.5, 128. ], radius= 25.3333)
+Curves0_1.append(Circle0_1_0)
+Loop0_1 = add_loop(Curves0_1)
+Loops0.append(Loop0_1)
+Profile0 = add_profile(Loops0)
+Sketch0 = add_sketch(sketch_plane= SketchPlane0, profile= Profile0,
+	sketch_position= [-0.  , -0.75,  0.  ], sketch_size= 1.5)
+Extrude0 = add_extrude(sketch= Sketch0,
+	operation= 0, type= 0, extent_one= 0.25, extent_two= 0.)
+```
+---
