@@ -60,5 +60,7 @@ checkpoints/*
 .ipynb_checkpoints/*
 scripts/.ipynb_checkpoints/*
 test/*
-output/*
+outputs/*
 dataset/*
+pythonocc_operator/*
+examples/*
