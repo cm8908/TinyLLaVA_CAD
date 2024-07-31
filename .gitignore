@@ -64,3 +64,7 @@ outputs/*
 dataset/*
 pythonocc_operator/*
 examples/*
+pyfiles/*
+pyfiles_step/*
+test-*.ipynb
+*.ply
