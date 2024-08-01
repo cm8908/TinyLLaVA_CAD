@@ -19,7 +19,6 @@ N_POINTS = 2000
 random.seed(1234)
 
 PC_ROOT = "pyfiles_step_pc/data_3d_lite/"
-RECORD_FILE = "../../datasets/cad_data/train_val_test_split.json"
 
 
 def distChamfer(a, b):
