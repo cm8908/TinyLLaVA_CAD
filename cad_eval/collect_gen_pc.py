@@ -26,7 +26,6 @@ def process_one(path):
     data_id = os.path.basename(path).split('.')[0]
 
     save_path = os.path.join(SAVE_DIR, data_id + ".ply")
-    print(save_path)
     if os.path.exists(save_path):
         return
 

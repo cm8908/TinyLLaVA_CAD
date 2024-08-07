@@ -1,3 +1,5 @@
+from glob import glob
+import pickle
 from tqdm import tqdm
 import numpy as np
 import argparse
@@ -16,6 +18,7 @@ parser.add_argument('--n_points', type=int, default=2000)
 parser.add_argument('--parallel', action='store_true')
 parser.add_argument('--analyze_brep', action='store_true')
 parser.add_argument('--log_dir', type=str, default=None)
+parser.add_argument('--train_dir', type=str, default=None, required=True)
 # parser.add_argument('--compare_shape', action='store_true')
 # parser.add_argument('--novel', action='store_true')
 # parser.add_argument('--unique', action='store_true')
@@ -56,39 +59,21 @@ def is_valid(path) -> bool:
     
     return True, shape, data_id # valid(bool), valid_shape, data_id
 
-# if args.novel:
-#     total_tgt_list = []
-#     if args.compare_shape:
-#         target_dir = '../../datasets/cad_data/cad_shape'
-#         target_filenames_dirs = sorted(os.listdir(target_dir))
-#         # print(target_filenames_dirs); exit()
-#         for fnm_dir in tqdm(target_filenames_dirs, desc='Collecting shape file names...'):
-#             target_filenames = sorted(glob(os.path.join(target_dir, fnm_dir) + '/*.pkl'))
-#             for fnm in target_filenames:
-#                 data_id = fnm.split('/')[-1].split('.')[0]
-#                 with open(fnm, 'rb') as f:
-#                     shape = pickle.load(f)
-#                     if shape is not None:
-#                         total_tgt_list.append((data_id, shape))
-#     else:
-#         target_dir = '../../datasets/cad_data/cad_vec'
-#         with open('../../datasets/cad_data/train_val_test_split.json', 'r') as f:
-#             train_filename_list = json.load(f)['train']
-#         for filename in tqdm(train_filename_list, desc='Collecting vectors...'):
-#             fnm = os.path.join(target_dir, filename) + '.h5'
-#             data_id = fnm.split('/')[-1].split('.')[0]
-#             with h5py.File(fnm, 'r') as fp:
-#                 vec = fp['vec'][:].astype(int)
-#             total_tgt_list.append((data_id, vec))
-        
+
+def read_target_files(fname):
+    try:
+        shape = read_step_file(fname)
+        return shape
+    except:
+        print(f'[TrainDir] Failed to read {fname}')
+        return None
+
                     
-# def is_novel(sample) -> bool:
-#     for i, (data_id, target) in enumerate(total_tgt_list):
-#         if args.compare_shape and sample.IsPartner(target):
-#             return False
-#         if isinstance(sample, np.ndarray) and np.array_equal(sample, target):
-#             return False
-#     return True
+def is_novel(sample) -> bool:
+    for target in total_tgt_list:
+        if sample.IsPartner(target):
+            return False
+    return True
 
 def is_unique(sample, idx) -> bool:
     for i, target in enumerate(valid_queries):
@@ -102,19 +87,23 @@ novel_samples = []
 unique_samples = []
 
 if args.parallel:
+    # Calculate validity 
     valid_samples, valid_shapes, data_ids = zip(*mp.Pool(processes=8).map(is_valid, tqdm([os.path.join(result_dir, name) for name in filenames])))
-    # valid_samples, valid_shapes, data_ids, valid_vectors = zip(*Parallel(n_jobs=8, verbose=2)(delayed(is_valid)(os.path.join(result_dir, name)) for name in filenames))
 
-    # print(type(valid_shapes), valid_shapes[0], len(valid_shapes))
     valid_shapes = list(filter(None, valid_shapes))  # Eliminate None i.e. invalid shapes
-    # print(type(valid_vectors), type(valid_vectors[0]), len(valid_vectors))
-    valid_queries = valid_shapes 
+    valid_queries = valid_shapes   # For uniqueness calculation
 
     invalid_data_ids = np.array(data_ids)[np.array(valid_samples) == False]
 
-    # if args.novel:
-    # novel_samples = mp.Pool(8).map(is_novel, valid_queries)
+    # Collect train files for novelty calculation
+    target_dir = args.train_dir
+    filenames = glob(os.path.join(target_dir, '*.step'))
+    total_tgt_list = mp.Pool(30).map(read_target_files, tqdm(filenames, desc=f'Collecting step files in {args.train_dir}'))
 
+    # Calculate novelty 
+    # novel_samples = mp.Pool(8).map(is_novel, valid_queries)  #TODO:
+
+    # Calculate uniqueness
     unique_samples = mp.Pool(8).starmap(is_unique, tqdm([(item, i) for i, item in enumerate(valid_queries)]))
         
 else:
@@ -130,7 +119,7 @@ uniqueness = np.array(unique_samples).mean()
 print(len(valid_shapes))
 print(f'Validity: {validity}, Novelty: {novelty}, Uniqueness: {uniqueness}')
 log_dir = args.log_dir if args.log_dir is not None else '.'
-save_path = os.path.join(os.path.dirname(log_dir), '_3metrics.txt')
+save_path = os.path.join(os.path.dirname(log_dir), '3metrics.txt')
 with open(save_path, 'w') as f:
     log_str = f'<Validity>\nN_TOTAL={len(valid_samples)}, N_VALID={len(valid_shapes)}, Validity={validity}\n\n' + \
               f'<Novelty>\nN_TOTAL={len(novel_samples)}, N_NOVEL={np.array(novel_samples).sum()}, Novelty={novelty}\n\n' + \

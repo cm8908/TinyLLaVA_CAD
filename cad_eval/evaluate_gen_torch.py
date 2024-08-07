@@ -18,7 +18,7 @@ N_POINTS = 2000
 
 random.seed(1234)
 
-PC_ROOT = "pyfiles_step_pc/data_3d_lite/"
+PC_ROOT = "/home/jung/TinyLLaVA_Factory/dataset/openecad/data_3d_test_pc"
 
 
 def distChamfer(a, b):
@@ -219,6 +219,7 @@ def collect_test_set_pcs(args):
     # with open(os.path.join(RECORD_FILE), "r") as fp:
     #     all_data = json.load(fp)['test']
     all_data = glob.glob(os.path.join(PC_ROOT, "*.ply"))
+    print(len(all_data))
     select_idx = random.sample(list(range(len(all_data))), args.n_test + 5)
     all_data = [all_data[x] for x in select_idx]
 

@@ -18,7 +18,7 @@ N_POINTS = 2000
 
 random.seed(1234)
 
-PC_ROOT = "dataset/captioncad/h5files_pc"
+PC_ROOT = "dataset/captioncad/pc_files"
 
 
 def distChamfer(a, b):
