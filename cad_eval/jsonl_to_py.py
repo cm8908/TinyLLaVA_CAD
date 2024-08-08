@@ -1,8 +1,13 @@
-import json, os, re
+import json, os, argparse
 from tqdm import tqdm
 
-jsonl_path = 'outputs/OpenECAD-Gemma-SigLip-2.4B-lora-split/generated_captioncad/merge.jsonl'
-save_dir = 'pyfiles/generated_captioncad'
+parser = argparse.ArgumentParser()
+parser.add_argument('--jsonl_path', type=str, default='outputs/OpenECAD-Gemma-SigLip-2.4B-lora-split/generated/merge.jsonl')
+parser.add_argument('--save_dir', type=str, default='outputs/OpenECAD-Gemma-SigLip-2.4B-lora-split/generated/pyfiles')
+args = parser.parse_args()
+
+jsonl_path = args.jsonl_path
+save_dir = args.save_dir
 
 def save_py(string, id):
     save_path = os.path.join(save_dir, id+'.py')
