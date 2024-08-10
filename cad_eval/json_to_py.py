@@ -2,11 +2,11 @@ import json, os, argparse
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--jsonl_path', type=str, default='outputs/OpenECAD-Gemma-SigLip-2.4B-lora-split/generated/merge.jsonl')
+parser.add_argument('--file_path', type=str, default='outputs/OpenECAD-Gemma-SigLip-2.4B-lora-split/generated/merge.jsonl')
 parser.add_argument('--save_dir', type=str, default='outputs/OpenECAD-Gemma-SigLip-2.4B-lora-split/generated/pyfiles')
 args = parser.parse_args()
 
-jsonl_path = args.jsonl_path
+file_path = args.file_path
 save_dir = args.save_dir
 
 def save_py(string, id):
@@ -20,9 +20,16 @@ def save_py(string, id):
         for s in str_li:  # [2:-2] from start to end of the code
             f.write(s+'\n')
             
-with open(jsonl_path) as f:
-    for line in tqdm(f):
-        data = json.loads(line)
-        text = data['text']
-        id = data['question_id']
-        save_py(text, id)
+with open(file_path) as f:
+    if file_path.endswith('.jsonl'):
+        for line in tqdm(f):
+            data = json.loads(line)
+            text = data['text']
+            id = data['question_id']
+            save_py(text, id)
+    elif file_path.endswith('.json'):
+        data = json.load(f)
+        for d in data:
+            text = d['text']
+            id = d['question_id']
+            save_py(text, id)
