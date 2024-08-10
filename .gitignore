@@ -68,3 +68,5 @@ pyfiles/*
 pyfiles_step/*
 test-*.ipynb
 *.ply
+examples/*
+sample100/*

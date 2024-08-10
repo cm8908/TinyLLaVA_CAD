@@ -19,7 +19,9 @@ def save_py(string, id):
             return id
         for s in str_li:  # [2:-2] from start to end of the code
             f.write(s+'\n')
-            
+
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
 with open(file_path) as f:
     if file_path.endswith('.jsonl'):
         for line in tqdm(f):
@@ -30,6 +32,7 @@ with open(file_path) as f:
     elif file_path.endswith('.json'):
         data = json.load(f)
         for d in data:
-            text = d['text']
+            text = d['answer']
             id = d['question_id']
+            print(text); exit()
             save_py(text, id)
